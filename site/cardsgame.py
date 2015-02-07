@@ -11,6 +11,7 @@ class RoundStage:
 class GameInstance:
     players = []
     currentJudge = None
+    detector = None
 
     api = None
     processedSnaps = []
@@ -26,6 +27,8 @@ class GameInstance:
     def __init__(self, organizer, gamePlayers):
         self.api = Snapchat()
         self.api.login('snapsvshumanity', 'ilovetosnap69')
+
+        self.detector = TextDetector()
 
         gameround = 0;
 
@@ -64,8 +67,37 @@ class GameInstance:
                 print "This shouldn't happen"
             time.sleep(30)
 
+    def is_int(self, s):
+        try:
+            int(s)
+            return True
+        except ValueError:
+            return False
+
     # For each snap in snaps, OCR/classify
     def processSnaps(self, snaps):
+        for snap in snaps:
+            text = self.detector.getText(snap['id'])[0]
+            if text == "CONFIRM":
+                for p in self.players:
+                    if p['username'] == snap['userid']:
+                        p['confirmed'] == True
+                        break
+            if is_int(text) and self.roundStage == RoundStage.Judging and not self.gameRound == 0:
+                if int(text) <= len(self.entries):
+                    announceRoundWinner(self.entries[int(text)]['userid'])
+                    if (self.gameRound == self.numCycles * len(self.players)):
+                        self.sendWinnerAndClose()
+                    self.startRound()
+                else:
+                    print "errrrrorrrrrr"
+            elif self.roundStage == RoundStage.Entries and not self.gameRound == 0:
+
+
+
+
+    # Sends a snap to everyone announcing the round winner
+    def announceRoundWinner(self, winnerid):
         pass
 
     # Checks to see who won by finding max score (from player object)
@@ -115,6 +147,7 @@ class GameInstance:
     # Initializes the round
     def startRound(self):
         self.roundStage = RoundStage.Entries
+        self.entries = []
         self.sendPromptMessages()
         self.roundStart = time.time()
 
