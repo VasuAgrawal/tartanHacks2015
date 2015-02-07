@@ -7,7 +7,7 @@ import cardsgame
 import thread
 
 def create_game(organizer, participants):
-    game = cardsgame.CardsGame(organizer, participants)
+    game = cardsgame.GameInstance(organizer, participants)
     thread.start_new_thread(game.run, ())
 
 @app.route('/')
@@ -20,5 +20,5 @@ def submit():
     return render_template("success.html")
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug = True)
 

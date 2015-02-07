@@ -51,7 +51,7 @@ class GameInstance:
     # Main logic loop
     def run(self):
         self.friendPlayers()
-        while (not gameFinished):
+        while (not GameInstance.gameFinished):
             snaps = self.pollAndFetchSnaps()
             self.processSnaps(snaps)
 
@@ -154,9 +154,9 @@ class GameInstance:
     # gets all new snaps, and returns a list of them
     def pollAndFetchSnaps(self):
         playernames = [x['username'] for x in self.players]
-        snaps = [x for x in s.get_snaps()
+        snaps = [x for x in self.api.get_snaps()
                 if x['status'] == 1 # Unopened
-                and playernames.index(x['sender']) != -1
+                and x['sender'] in playernames
                 and x['media_type'] == 0  # Is a photo, not a video
                 ]
 
@@ -171,8 +171,9 @@ class GameInstance:
     # Sends friend requests and invitations to all players
     def friendPlayers(self):
         friendslist = [x['name'] for x in self.api.get_friends()]
-        toadd = [x['username'] for x in players
-                if not friendslist.index(x['username']) == -1]
+        toadd = [x['username'] for x in self.players
+                    if x['username'] not in friendslist]
+        print "toAdd", toadd
         for user in toadd:
             self.api.add_friend(user)
 
@@ -200,6 +201,9 @@ class GameInstance:
             f.write(blob)
         f.close()
         return True
+
+    def sendInvitationSnaps(self, users):
+        pass
 
     # Sends a snapchat stored at path to recipients
     # recipients should be comma separated (no space!) list of usernames
