@@ -1,0 +1,13 @@
+MANIFEST.in
+README.md
+requirements.txt
+setup.py
+bin/get_snaps.py
+bin/get_stories.py
+pysnap/__init__.py
+pysnap/utils.py
+pysnap.egg-info/PKG-INFO
+pysnap.egg-info/SOURCES.txt
+pysnap.egg-info/dependency_links.txt
+pysnap.egg-info/requires.txt
+pysnap.egg-info/top_level.txt
