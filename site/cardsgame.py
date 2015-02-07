@@ -27,7 +27,7 @@ class GameInstance:
         self.api = Snapchat()
         self.api.login('snapsvshumanity', 'ilovetosnap69')
 
-        gameround = 0;
+        gameround = 0
 
         self.players.append({
                             'username' : organizer,
