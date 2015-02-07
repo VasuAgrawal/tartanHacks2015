@@ -78,13 +78,10 @@ class GameInstance:
         # self.sendsnap(invitation snap, users, 10)
         pass
 
-    # Simultaneously creates judge and player prompts,
-    # saves them to state vars.
+    # Creates prompt image for current round
     def createPrompt(self):
-        # player image = some stuff
-        # judge image = some stuff
-        # self.prompt = {'player': playerimage,
-        #                'judge' : judgeimage}
+        # playerimage = some stuff
+        # self.prompt = playerimage
         pass
 
     # Sends question prompts to all players as well as judge
