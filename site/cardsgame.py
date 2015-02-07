@@ -92,7 +92,7 @@ class GameInstance:
                 else:
                     print "errrrrorrrrrr"
             elif self.roundStage == RoundStage.Entries and not self.gameRound == 0:
-
+                pass
 
 
 

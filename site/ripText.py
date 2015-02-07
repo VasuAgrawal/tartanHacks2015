@@ -17,6 +17,8 @@ class TextDetector(object):
         self.tessApi.SetPageSegMode(tesseract.PSM_AUTO)
         self.text = []
         self.minConfidence = 0
+        self.joinedText = ""
+        self.commandCode = "##"
 
     def thresholdImage(self):
         self.manipulate = np.copy(self.original)
@@ -51,17 +53,20 @@ class TextDetector(object):
             if not ri.Next(level):
                 return
 
-    def parseText(self):
+    def cleanText(self):
         for i in xrange(len(self.text) - 1, -1, -1):
             word, confidence = self.text[i]
             if confidence < self.minConfidence:
                 self.text.pop(i)
 
     def textString(self):
-        ret = ""
         for word, confidence in self.text:
-            if word != None: ret += word + " "
-        return ret
+            if word != None: self.joinedText += word + " "
+
+    def findCommands(self):
+        stripped = self.joinedText[self.joinedText.find(self.commandCode):]
+        split = stripped.split()
+        return ("".join(split[0:1]), split[1:])
 
     def getText(self, identifier):
         self.original = cv2.imread("snaps/" + identifier + ".jpg")
@@ -69,7 +74,9 @@ class TextDetector(object):
         self.thresholdImage()
         self.dilateImage()
         self.ocr()
-        self.parseText()
+        self.cleanText()
+        self.textString()
+        command, params = self.findCommands()
 
         # cv2.imshow("Dilated", self.manipulate)
 
@@ -77,7 +84,7 @@ class TextDetector(object):
         #     if cv2.waitKey(1) & 0xFF == ord('q'):
         #         return
 
-        return self.textString()
+        return command, params
 
     def close(self):
         self.tessApi.End()
@@ -87,10 +94,4 @@ class TextDetector(object):
 # print "Starting"
 # print
 
-# image = cv2.imread('fletcher2.jpg')
-
-# print detector.getText(image)
-# # for i in xrange(1, 10):
-# #     image = cv2.imread('image%d.jpg'%i)
-# #     print "Detected Text:", 
-# #     print detector.getText(image)
+# print detector.getText("fletch")
