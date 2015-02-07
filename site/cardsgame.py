@@ -92,7 +92,9 @@ class GameInstance:
                 else:
                     print "errrrrorrrrrr"
             elif self.roundStage == RoundStage.Entries and not self.gameRound == 0:
-                if (snap['userid'] in [x['userid'] for x in self.entries]):
+                #if (snap['userid'] in [x['userid'] for x in self.entries]):
+                self.entries.append(snap)
+
 
 
 
