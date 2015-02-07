@@ -2,9 +2,6 @@ import cv2
 import numpy as np
 import tesseract
 
-api = tesseract.TessBaseAPI()
-api.Set
-
 testImage = cv2.imread('someGirl.jpg')
 
 for i in xrange(len(testImage)):
@@ -27,3 +24,15 @@ while True:
         break
 
 cv2.destroyAllWindows()
+
+api = tesseract.TessBaseAPI()
+api.Init(".", "eng", tesseract.OEM_DEFAULT)
+api.SetPageSegMode(tesseract.PSM_AUTO)
+
+print "Starting to detect!"
+tesseract.SetCvImage(testImage, api)
+print api.GetUTF8Text()
+print
+print "Confidence:", api.MeanTextConf()
+
+api.End()
