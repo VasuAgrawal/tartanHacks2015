@@ -77,13 +77,13 @@ class GameInstance:
     # For each snap in snaps, OCR/classify
     def processSnaps(self, snaps):
         for snap in snaps:
-            text = self.detector.getText(snap['id'])[0]
-            if text == "CONFIRM":
+            text, args = self.detector.getText(snap['id'])[0]
+            if text == "##CONFIRM":
                 for p in self.players:
                     if p['username'] == snap['userid']:
                         p['confirmed'] == True
                         break
-            if is_int(text) and self.roundStage == RoundStage.Judging and not self.gameRound == 0:
+            if is_int(text.replace("##", "")) and self.roundStage == RoundStage.Judging and not self.gameRound == 0:
                 if int(text) <= len(self.entries):
                     announceRoundWinner(self.entries[int(text)]['userid'])
                     if (self.gameRound == self.numCycles * len(self.players)):
