@@ -1,0 +1,35 @@
+body {
+    background: #FFB03B;
+    font-family: 'Source Sans Pro', sans-serif;
+}
+
+#mainblock {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    width: 40%;
+    height: 40%;
+}
+
+#form {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    background: #374140;
+    border-radius: 7px;
+    color: #D9CB9E;
+}
+
+.formrow {
+    padding-top: 10px;
+}
+
+div.formrow label {
+    text-align: left;
+    display: inline-block;
+    width: 150px;
+}
+
+div.formrow input {
+    width: 100px;
+}
+
