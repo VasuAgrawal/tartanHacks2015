@@ -28,6 +28,7 @@ class GameInstance:
     def __init__(self, organizer, gamePlayers):
         self.api = Snapchat()
         self.api.login('snapsvshumanity', 'ilovetosnap69')
+        self.imp = ImageProcessor()
 
         self.detector = TextDetector()
 
@@ -72,9 +73,10 @@ class GameInstance:
                     self.roundStage = RoundStage.Judging
                     self.proceedToJudging()
             elif self.roundStage == RoundStage.Judging:
+                print "letting process handle this one"
                 pass
-            else:
-                print "This shouldn't happen"
+            # else:
+            #     print "This shouldn't happen"
             time.sleep(30)
 
     def is_int(self, s):
@@ -89,15 +91,16 @@ class GameInstance:
         for snap in snaps:
             print "Processing a snap ...",
             text = self.detector.getText(snap['id'])[0]
-            print "processed!"
+            print "Text: ", text
             if text == "##CONFIRM":
                 for p in self.players:
                     if p['username'] == snap['sender']:
                         p['confirmed'] = True
                         break
+            if text.replace("##", "").isdigit(): print text
             if text.replace("##", "").isdigit() and self.roundStage == RoundStage.Judging and not self.gameRound == 0:
                 if int(text) <= len(self.entries):
-                    announceRoundWinner(self.entries[int(text) - 1]['userid'])
+                    announceRoundWinner(self.entries[int(text)]['userid'])
                     if (self.gameRound == self.numCycles * len(self.players)):
                         self.sendWinnerAndClose()
                     self.startRound()
@@ -105,7 +108,6 @@ class GameInstance:
                     print "errrrrorrrrrr"
             elif self.roundStage == RoundStage.Entries and not self.gameRound == 0:
                 #if (snap['userid'] in [x['userid'] for x in self.entries]):
-                snap['index'] = len(self.entries) + 1
                 self.entries.append(snap)
 
 
@@ -156,9 +158,9 @@ class GameInstance:
     # Enters judging mode, sends all choices to judge
     def proceedToJudging(self):
         recipient = self.judge['username']
-        for entry in self.entries:
-            ImageProcessor().addNumber(str(entry['id']), entry['index'])
-            path = 'snaps/' + entry['index'] + '.jpg'
+        for i, entry in enumerate(self.entries):
+            # self.imp.addNumber(str(entry['id']), i + 1)
+            path = 'snaps/' + entry['id'] + '.jpg'
             time = entry['time']
             self.sendSnap(path, recipient, time)
 
@@ -185,7 +187,7 @@ class GameInstance:
         for snap in snaps:
             if self.fetchPhotoSnap(snap['id']):
                 successfullyDownloaded.append(snap)
-                # self.api.mark_viewed(snap['id'], 1)
+                self.api.mark_viewed(snap['id'], 1)
 
         return successfullyDownloaded
 
