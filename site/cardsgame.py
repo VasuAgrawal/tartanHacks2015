@@ -1,6 +1,7 @@
 from pprint import pprint
 from pysnap import Snapchat
 from ripText import TextDetector
+from imageProcessor import ImageProcessor
 
 import time
 
@@ -50,8 +51,11 @@ class GameInstance:
 
     # Main logic loop
     def run(self):
+        self.api.clear_feed()
         self.friendPlayers()
         while (not GameInstance.gameFinished):
+            print "In game loop, round:", self.gameRound
+            print "Stage: ", self.roundStage
             snaps = self.pollAndFetchSnaps()
             self.processSnaps(snaps)
 
@@ -60,9 +64,15 @@ class GameInstance:
             elif self.gameRound > self.numCycles * len(self.players):
                 self.sendWinnerAndClose()
             elif self.roundStage == RoundStage.Entries:
+                print "Self Entries: ", self.entries
                 if (time.time() - self.roundStart > self.roundDuration):
                     self.roundStage = RoundStage.Judging
                     self.proceedToJudging()
+                if (len(self.entries) >= len(self.players) - 1):
+                    self.roundStage = RoundStage.Judging
+                    self.proceedToJudging()
+            elif self.roundStage == RoundStage.Judging:
+                pass
             else:
                 print "This shouldn't happen"
             time.sleep(30)
@@ -77,15 +87,17 @@ class GameInstance:
     # For each snap in snaps, OCR/classify
     def processSnaps(self, snaps):
         for snap in snaps:
-            text, args = self.detector.getText(snap['id'])[0]
+            print "Processing a snap ...",
+            text = self.detector.getText(snap['id'])[0]
+            print "processed!"
             if text == "##CONFIRM":
                 for p in self.players:
-                    if p['username'] == snap['userid']:
-                        p['confirmed'] == True
+                    if p['username'] == snap['sender']:
+                        p['confirmed'] = True
                         break
-            if is_int(text.replace("##", "")) and self.roundStage == RoundStage.Judging and not self.gameRound == 0:
+            if text.replace("##", "").isdigit() and self.roundStage == RoundStage.Judging and not self.gameRound == 0:
                 if int(text) <= len(self.entries):
-                    announceRoundWinner(self.entries[int(text)]['userid'])
+                    announceRoundWinner(self.entries[int(text) - 1]['userid'])
                     if (self.gameRound == self.numCycles * len(self.players)):
                         self.sendWinnerAndClose()
                     self.startRound()
@@ -93,11 +105,8 @@ class GameInstance:
                     print "errrrrorrrrrr"
             elif self.roundStage == RoundStage.Entries and not self.gameRound == 0:
                 #if (snap['userid'] in [x['userid'] for x in self.entries]):
+                snap['index'] = len(self.entries) + 1
                 self.entries.append(snap)
-
-
-
-
 
 
 
@@ -112,43 +121,50 @@ class GameInstance:
     # Send snapchats to users inviting them to play
     def sendInvitationSnap(self, users):
         # invitation snap = some stuff
-        # self.sendsnap(invitation snap, users, 10)
-        pass
+        print users
+        self.sendSnap('static/snap-confirm.jpg', users, 10)
 
     # Creates prompt image for current round
     def createPrompt(self):
-        return 'static/snap-confirm.jpg'
+        return 'static/blackcard.jpg'
 
     # Sends question prompts to all players as well as judge
     def sendPromptMessages(self):
+        print "Sending prompty messages"
         prompt = self.createPrompt()
         judgenotify = 'static/snap-judge.jpg'
         names = [x['username'] for x in self.players]
         self.sendSnap(judgenotify, self.judge['username'], 10)
+        print "Sent to judge"
         self.sendSnap(prompt, ','.join(names), 10)
+        print "Sent to users"
 
     # Check to see if all unconfirmed players have accepted
     # Starts game if true
     def checkForAccepts(self):
+        print "Checking for accepts"
         unconfirmedPlayers = [x for x in self.players
                 if x['confirmed'] == False]
+        print "Unconfirmed Players:", unconfirmedPlayers
         if (len(unconfirmedPlayers) == 0):
             self.gameRound = 1
             self.players[0]['winner'] = None;
-            self.players[0]['judged'] = true
-            currentJudge = self.players[0]
+            self.players[0]['judged'] = True
+            self.judge = self.players[0]
             self.startRound()
 
     # Enters judging mode, sends all choices to judge
     def proceedToJudging(self):
         recipient = self.judge['username']
         for entry in self.entries:
-            path = 'snaps/' + entry['id'] + '.jpg'
+            ImageProcessor().addNumber(str(entry['id']), entry['index'])
+            path = 'snaps/' + entry['index'] + '.jpg'
             time = entry['time']
             self.sendSnap(path, recipient, time)
 
     # Initializes the round
     def startRound(self):
+        print "Starting Round"
         self.roundStage = RoundStage.Entries
         self.entries = []
         self.sendPromptMessages()
@@ -160,14 +176,16 @@ class GameInstance:
         snaps = [x for x in self.api.get_snaps()
                 if x['status'] == 1 # Unopened
                 and x['sender'] in playernames
-                and x['media_type'] == 0  # Is a photo, not a video
+                and x['media_type'] == 0
+                and x not in GameInstance.processedSnaps  # Is a photo, not a video
                 ]
 
-        successfullyDownloaded = [];
+        successfullyDownloaded = []
 
         for snap in snaps:
             if self.fetchPhotoSnap(snap['id']):
                 successfullyDownloaded.append(snap)
+                # self.api.mark_viewed(snap['id'], 1)
 
         return successfullyDownloaded
 
@@ -180,7 +198,7 @@ class GameInstance:
         for user in toadd:
             self.api.add_friend(user)
 
-        self.sendInvitationSnap(','.join(toadd));
+        self.sendInvitationSnap(','.join([x['username'] for x in self.players]));
         print "All players are friended!"
 
     # Prints a list of current players

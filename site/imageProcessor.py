@@ -26,7 +26,7 @@ class ImageProcessor(object):
         size, height = cv2.getTextSize(text, fontFace, fontScale, thickness)
         textWidth, textHeight = size
         cv2.putText(image, text, (offset - (textWidth/2) , offset + (textHeight/2)), fontFace, fontScale, (255, 255, 255), thickness)
-        cv2.imwrite('snaps/' + identifier + '.jpg', image)
+        cv2.imwrite('snaps/' + text + '.jpg', image)
 
     def removeRed(self, identifier):
         image = self.readImage(identifier)
@@ -43,15 +43,15 @@ class ImageProcessor(object):
         image[:, :, 0] = 0
         self.writeImage(identifier, image)
 
-    def showImage(self, identifier):
-        self.removeRed(identifier)
-        self.addNumber(identifier, 42)
+    # def showImage(self, identifier):
+    #     self.removeRed(identifier)
+    #     self.addNumber(identifier, 42)
 
-        added = cv2.imread('snaps/' + identifier + '.jpg')
-        cv2.imshow("Written", added)
+    #     added = cv2.imread('snaps/' + identifier + '.jpg')
+    #     cv2.imshow("Written", added)
 
-        while True:
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                return
+    #     while True:
+    #         if cv2.waitKey(1) & 0xFF == ord('q'):
+    #             return
 
-ImageProcessor().showImage("image3")
+# ImageProcessor().showImage("image3")
