@@ -3,6 +3,7 @@ from pysnap import Snapchat
 from ripText import TextDetector
 from imageProcessor import ImageProcessor
 
+import random
 import time
 
 class RoundStage:
@@ -11,10 +12,7 @@ class RoundStage:
 
 class GameInstance:
     players = []
-    currentJudge = None
-    detector = None
 
-    api = None
     processedSnaps = []
 
     gameRound = 0
@@ -23,6 +21,42 @@ class GameInstance:
     roundDuration = 60 * 5  # i.e. five minutes
     numCycles = 1
     gameFinished = False
+
+
+    def restart(self):
+
+        print "Resetting variables"
+
+        self.api = Snapchat()
+        self.api.login('snapsvshumanity', 'ilovetosnap69')
+        # self.imp = ImageProcessor()
+        # self.detector = TextDetector()
+
+        self.gameRound = 0
+
+        self.winner = ""
+
+        counter = 0
+        while True:
+            newJudge = random.randint(0, len(self.players) -1)
+            if self.players[newJudge] != self.judge or counter > 10:
+                break
+            counter += 1
+
+        for i, player in enumerate(self.players):
+            player['organizer'] = True if i == newJudge else False
+            player['confirmed'] = False
+            player['judged'] = False
+
+        GameInstance.processedSnaps = []
+
+        self.roundStage = RoundStage.Entries
+        self.roundStart = 0
+        self.roundDuration = 60 * 5
+        self.numCycles = 1
+        self.gameFinished = False
+
+        self.run()
 
     # Constructor
     def __init__(self, organizer, gamePlayers):
@@ -50,6 +84,8 @@ class GameInstance:
                     }
             self.players.append(currentPlayer)
 
+        self.winner = ""
+
     # Main logic loop
     def run(self):
         self.api.clear_feed()
@@ -68,47 +104,55 @@ class GameInstance:
                 print "Self Entries: ", self.entries
                 if (time.time() - self.roundStart > self.roundDuration):
                     self.roundStage = RoundStage.Judging
+                    self.winner = str(self.entries[-1]['id'])
                     self.proceedToJudging()
                 if (len(self.entries) >= len(self.players) - 1):
                     self.roundStage = RoundStage.Judging
+                    self.winner = str(self.entries[-1]['id'])
                     self.proceedToJudging()
             elif self.roundStage == RoundStage.Judging:
-                print "letting process handle this one"
-                pass
+                time.sleep(15)
+                print "Judging!"
+                if snaps != None:
+                    print "WE FOUND A WINNER!"
+                    self.sendWinnerAndClose()
+                    break
             # else:
             #     print "This shouldn't happen"
             time.sleep(30)
 
-    def is_int(self, s):
-        try:
-            int(s)
-            return True
-        except ValueError:
-            return False
+        print "Game is over, starting again!"
+        time.sleep(10)
+        self.restart()
 
     # For each snap in snaps, OCR/classify
     def processSnaps(self, snaps):
-        for snap in snaps:
-            print "Processing a snap ...",
-            text = self.detector.getText(snap['id'])[0]
-            print "Text: ", text
-            if text == "##CONFIRM":
-                for p in self.players:
-                    if p['username'] == snap['sender']:
-                        p['confirmed'] = True
-                        break
-            if text.replace("##", "").isdigit(): print text
-            if text.replace("##", "").isdigit() and self.roundStage == RoundStage.Judging and not self.gameRound == 0:
-                if int(text) <= len(self.entries):
-                    announceRoundWinner(self.entries[int(text)]['userid'])
-                    if (self.gameRound == self.numCycles * len(self.players)):
-                        self.sendWinnerAndClose()
-                    self.startRound()
-                else:
-                    print "errrrrorrrrrr"
-            elif self.roundStage == RoundStage.Entries and not self.gameRound == 0:
-                #if (snap['userid'] in [x['userid'] for x in self.entries]):
-                self.entries.append(snap)
+        print "Processing ..."
+        if snaps != None:
+            print len(snaps)
+            for snap in snaps:
+                print "Processing a snap ...",
+                text = self.detector.getText(snap['id'])[0]
+                print "Text: ", text
+                if text == "##CONFIRM":
+                    for p in self.players:
+                        if p['username'] == snap['sender']:
+                            p['confirmed'] = True
+                            break
+                elif "##" in text:
+                    print "THE WINNER IS", text
+                if text.replace("##", "").isdigit(): print text
+                if text.replace("##", "").isdigit() and self.roundStage == RoundStage.Judging and not self.gameRound == 0:
+                    if int(text) <= len(self.entries):
+                        announceRoundWinner(self.entries[int(text)]['userid'])
+                        if (self.gameRound == self.numCycles * len(self.players)):
+                            self.sendWinnerAndClose()
+                        self.startRound()
+                    else:
+                        print "errrrrorrrrrr"
+                elif self.roundStage == RoundStage.Entries and not self.gameRound == 0:
+                    #if (snap['userid'] in [x['userid'] for x in self.entries]):
+                    self.entries.append(snap)
 
 
 
@@ -118,7 +162,8 @@ class GameInstance:
 
     # Checks to see who won by finding max score (from player object)
     def sendWinnerAndClose(self):
-        pass
+        names = [x['username'] for x in self.players]
+        self.sendSnap('snaps/' + self.winner + ".jpg", ','.join(names), 10)
 
     # Send snapchats to users inviting them to play
     def sendInvitationSnap(self, users):
@@ -150,9 +195,13 @@ class GameInstance:
         print "Unconfirmed Players:", unconfirmedPlayers
         if (len(unconfirmedPlayers) == 0):
             self.gameRound = 1
-            self.players[0]['winner'] = None;
-            self.players[0]['judged'] = True
-            self.judge = self.players[0]
+
+            for player in self.players:
+                if player['organizer']:
+                    player['winner'] = None
+                    player['judged'] = True
+                    self.judge = player
+
             self.startRound()
 
     # Enters judging mode, sends all choices to judge
@@ -174,7 +223,16 @@ class GameInstance:
 
     # gets all new snaps, and returns a list of them
     def pollAndFetchSnaps(self):
+        if self.roundStage == RoundStage.Judging: pass
         playernames = [x['username'] for x in self.players]
+        foundSnaps = None
+        while True:
+            try:
+                foundSnaps = self.api.get_snaps()
+                break
+            except:
+                self.api.login('snapsvshumanity', 'ilovetosnap69')
+
         snaps = [x for x in self.api.get_snaps()
                 if x['status'] == 1 # Unopened
                 and x['sender'] in playernames
@@ -184,10 +242,11 @@ class GameInstance:
 
         successfullyDownloaded = []
 
-        for snap in snaps:
-            if self.fetchPhotoSnap(snap['id']):
-                successfullyDownloaded.append(snap)
-                self.api.mark_viewed(snap['id'], 1)
+        if snaps != None:
+            for snap in snaps:
+                if self.fetchPhotoSnap(snap['id']):
+                    successfullyDownloaded.append(snap)
+                    self.api.mark_viewed(snap['id'], 1)
 
         return successfullyDownloaded
 
@@ -216,6 +275,8 @@ class GameInstance:
     # Downloads and saves the snap with id snapid
     def fetchPhotoSnap(self, snapid):
         name = "snaps/" + snapid + ".jpg"
+        if self.roundStage == RoundStage.Entries:
+            self.winner = snapid
         f = open(name, 'wb')
         blob = self.api.get_blob(snapid)
         if blob == None:
