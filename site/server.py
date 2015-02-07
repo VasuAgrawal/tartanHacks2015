@@ -5,9 +5,9 @@ app = Flask(__name__)
 
 import cardsgame
 
-def create_game(organizers, participants):
-    print organizers
-    print participants
+def create_game(organizer, participants):
+    newgame = cardsgame.GameInstance(organizer, participants)
+    newgame.start()
 
 @app.route('/')
 def main():
@@ -19,5 +19,5 @@ def submit():
     return render_template("success.html")
 
 if __name__ == '__main__':
-        app.run()
+        app.run(debug=True)
 
