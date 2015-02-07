@@ -3,19 +3,28 @@
 <head>
 <title> Snaps Against Humanity - Disrupt so Hard </title>
 <link rel="stylesheet" type="text/css" href="static/main.css">
+<link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
 </head>
 
 <body>
 <div id="mainblock">
-    <div> Snaps Against Humanity </div>
+    <h1> Snaps Against Humanity </h1>
     <div id="form">
+        <div>
+            <h2> Sign Up! </h2>
+        </div>
         <form action="submit" method="POST">
-            Organizer:
-            <input type="text" name="organizer">
-
-            Other Participants (Comma Separated):
-            <input type="text" name="participants">
-            <input type="submit" value="Submit">
+            <div class="formrow">
+                <label for="organizer"> Organizer </label>
+                <input type="text" id="organizer" name="organizer">
+            </div>
+            <div class="formrow">
+                <label for="participants"> Other Participants </label>
+                <input type="text" id="participants" name="participants">
+            </div>
+            <div class="formrow">
+                <input type="submit" value="Create Game">
+            </div>
 
         </form>
     </div>
