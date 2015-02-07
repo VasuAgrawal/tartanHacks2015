@@ -3,11 +3,12 @@ from flask import render_template
 from flask import request
 app = Flask(__name__)
 
-#import cardsgame
+import cardsgame
+import thread
 
-def create_game(organizers, participants):
-    print organizers
-    print participants
+def create_game(organizer, participants):
+    game = cardsgame.CardsGame(organizer, participants)
+    thread.start_new_thread(game.run, ())
 
 @app.route('/')
 def main():
