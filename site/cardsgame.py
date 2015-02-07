@@ -174,11 +174,12 @@ class GameInstance:
         friendslist = [x['name'] for x in self.api.get_friends()]
         toadd = [x['username'] for x in self.players
                     if x['username'] not in friendslist]
-        print "toAdd", toadd
+        # print "toAdd", toadd
         for user in toadd:
             self.api.add_friend(user)
 
         self.sendInvitationSnaps(','.join(toadd));
+        print "All players are friended!"
 
     # Prints a list of current players
     def printPlayers(self):
