@@ -1,5 +1,6 @@
 from pprint import pprint
 from pysnap import Snapchat
+from ripText import TextDetector
 
 import time
 
