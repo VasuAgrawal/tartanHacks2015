@@ -71,19 +71,29 @@ class GameInstance:
     def sendWinnerAndClose(self):
         pass
 
-    # Send snapchats to user inviting him to play
-    def sendInvitationSnap(self, user):
+    # Send snapchats to users inviting them to play
+    def sendInvitationSnap(self, users):
+        # invitation snap = some stuff
+        # self.sendsnap(invitation snap, users, 10)
         pass
 
     # Simultaneously creates judge and player prompts,
     # saves them to state vars.
     def createPrompt(self):
+        # player image = some stuff
+        # judge image = some stuff
+        # self.prompt = {'player': playerimage,
+        #                'judge' : judgeimage}
         pass
+
 
     # Returns file path to player or judge prompt, based on
     # parameter passed in
     def getPrompt(judge=False):
-        pass
+        if judge:
+            return self.prompt['judge']
+        else:
+            return self.prompt['player']
 
     # Sends question prompts to all players as well as judge
     def sendPromptMessages(self):
@@ -144,7 +154,8 @@ class GameInstance:
                 if not friendslist.index(x['username']) == -1]
         for user in toadd:
             self.api.add_friend(user)
-            self.sendInvitationSnap(user);
+
+        self.sendInvitationSnaps(','.join(toadd));
 
     # Prints a list of current players
     def printPlayers(self):
