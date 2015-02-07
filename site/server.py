@@ -8,7 +8,7 @@ import thread
 
 def create_game(organizer, participants):
     newgame = cardsgame.GameInstance(organizer, participants)
-    thread.start_new_thread(newgame.start)
+    thread.start_new_thread(newgame.run, (None,))
 
 @app.route('/')
 def main():
