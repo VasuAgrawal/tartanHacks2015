@@ -119,7 +119,7 @@ class GameInstance:
     # Sends question prompts to all players as well as judge
     def sendPromptMessages(self):
         prompt = self.createPrompt()
-        judgenotify = 'resources/judge.jpg'
+        judgenotify = 'static/judge.jpg'
         names = [x['username'] for x in self.players]
         self.sendSnap(judgenotify, self.judge['username'], 10)
         self.sendSnap(prompt, ','.join(names), 10)
@@ -135,6 +135,7 @@ class GameInstance:
             self.players[0]['winner'] = None;
             self.players[0]['judged'] = true
             currentJudge = self.players[0]
+            self.startRound()
 
     # Enters judging mode, sends all choices to judge
     def proceedToJudging(self):
