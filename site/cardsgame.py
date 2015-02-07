@@ -92,7 +92,10 @@ class GameInstance:
                 else:
                     print "errrrrorrrrrr"
             elif self.roundStage == RoundStage.Entries and not self.gameRound == 0:
-                pass
+                if (snap['userid'] in [x['userid'] for x in self.entries]):
+
+
+
 
 
 
@@ -178,7 +181,7 @@ class GameInstance:
         for user in toadd:
             self.api.add_friend(user)
 
-        self.sendInvitationSnaps(','.join(toadd));
+        self.sendInvitationSnap(','.join(toadd));
         print "All players are friended!"
 
     # Prints a list of current players
@@ -203,9 +206,6 @@ class GameInstance:
             f.write(blob)
         f.close()
         return True
-
-    def sendInvitationSnaps(self, users):
-        pass
 
     # Sends a snapchat stored at path to recipients
     # recipients should be comma separated (no space!) list of usernames
