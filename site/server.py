@@ -4,10 +4,11 @@ from flask import request
 app = Flask(__name__)
 
 import cardsgame
+import thread
 
 def create_game(organizer, participants):
     newgame = cardsgame.GameInstance(organizer, participants)
-    newgame.start()
+    thread.start_new_thread(newgame.start)
 
 @app.route('/')
 def main():
