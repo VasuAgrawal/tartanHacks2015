@@ -20,5 +20,5 @@ setup(
         'pycrypto>=2.6',
         'requests>=2.0'
     ],
-    license=open('LICENSE').read()
+    # license=open('LICENSE').read()
 )

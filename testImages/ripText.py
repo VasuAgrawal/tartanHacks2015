@@ -7,7 +7,7 @@ class TextDetector(object):
     def __init__(self):
         self.original = None
         self.manipulate = None
-        self.tol = 10
+        self.tol = 50
         self.colorMax = 255
         self.white = np.array([255, 255, 255], dtype = np.uint8)
         self.black = np.array([0, 0, 0], dtype = np.uint8)
@@ -16,7 +16,7 @@ class TextDetector(object):
         self.tessApi.Init(".", "eng", tesseract.OEM_DEFAULT)
         self.tessApi.SetPageSegMode(tesseract.PSM_AUTO)
         self.text = []
-        self.minConfidence = 80
+        self.minConfidence = 0
 
     def thresholdImage(self):
         self.manipulate = np.copy(self.original)
@@ -34,6 +34,7 @@ class TextDetector(object):
     def dilateImage(self):
         self.manipulate = cv2.dilate(self.manipulate, self.kernel, iterations = 1)
 
+    # https://code.google.com/p/python-tesseract/
     def ocr(self):
         height, width, channel = self.manipulate.shape
         iplimage = cv.CreateImageHeader((width, height), cv.IPL_DEPTH_8U, channel)
@@ -59,7 +60,7 @@ class TextDetector(object):
     def textString(self):
         ret = ""
         for word, confidence in self.text:
-            ret += word + " "
+            if word != None: ret += word + " "
         return ret
 
     def getText(self, image):
@@ -69,26 +70,27 @@ class TextDetector(object):
         self.dilateImage()
         self.ocr()
         self.parseText()
-        return self.textString()
+
         # cv2.imshow("Dilated", self.manipulate)
 
         # while True:
         #     if cv2.waitKey(1) & 0xFF == ord('q'):
-        #         return "LOOK I PASSED"
+        #         return
+
+        return self.textString()
 
     def close(self):
         self.tessApi.End()
 
-
-
-
-
-
-
 detector = TextDetector()
 
-image = cv2.imread('someGirl.jpg')
+print "Starting"
+print
 
-print "Starting!"
-print "Detected Text:", 
+image = cv2.imread('fletcher2.jpg')
+
 print detector.getText(image)
+# for i in xrange(1, 10):
+#     image = cv2.imread('image%d.jpg'%i)
+#     print "Detected Text:", 
+#     print detector.getText(image)

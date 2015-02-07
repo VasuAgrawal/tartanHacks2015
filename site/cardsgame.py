@@ -86,23 +86,13 @@ class GameInstance:
         #                'judge' : judgeimage}
         pass
 
-
-    # Returns file path to player or judge prompt, based on
-    # parameter passed in
-    def getPrompt(judge=False):
-        if judge:
-            return self.prompt['judge']
-        else:
-            return self.prompt['player']
-
     # Sends question prompts to all players as well as judge
     def sendPromptMessages(self):
-        self.createPrompt()
-        playerpath = self.getPrompt(False)
-        judgepath = self.getPrompt(True)
-        nonjudges = [x['username'] for x in self.players if not x == self.judge]
-        self.sendSnap(playerpath, ','.join(nonjudges), 10)
-        self.sendSnap(judgepath, self.judge['username'], 10)
+        prompt = self.createPrompt()
+        judgenotify = 'resources/judge.jpg'
+        names = [x['username'] for x in self.players]
+        self.sendSnap(judgenotify, self.judge['username'], 10)
+        self.sendSnap(prompt, ','.join(names), 10)
 
 
     # Check to see if all unconfirmed players have accepted
