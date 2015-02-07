@@ -77,13 +77,13 @@ class GameInstance:
     # For each snap in snaps, OCR/classify
     def processSnaps(self, snaps):
         for snap in snaps:
-            text = self.detector.getText(snap['id'])[0]
-            if text == "CONFIRM":
+            text, args = self.detector.getText(snap['id'])[0]
+            if text == "##CONFIRM":
                 for p in self.players:
                     if p['username'] == snap['userid']:
                         p['confirmed'] == True
                         break
-            if is_int(text) and self.roundStage == RoundStage.Judging and not self.gameRound == 0:
+            if is_int(text.replace("##", "")) and self.roundStage == RoundStage.Judging and not self.gameRound == 0:
                 if int(text) <= len(self.entries):
                     announceRoundWinner(self.entries[int(text)]['userid'])
                     if (self.gameRound == self.numCycles * len(self.players)):
@@ -115,18 +115,15 @@ class GameInstance:
 
     # Creates prompt image for current round
     def createPrompt(self):
-        # playerimage = some stuff
-        # self.prompt = playerimage
-        pass
+        return 'static/snap-confirm.jpg'
 
     # Sends question prompts to all players as well as judge
     def sendPromptMessages(self):
         prompt = self.createPrompt()
-        judgenotify = 'static/judge.jpg'
+        judgenotify = 'static/snap-judge.jpg'
         names = [x['username'] for x in self.players]
         self.sendSnap(judgenotify, self.judge['username'], 10)
         self.sendSnap(prompt, ','.join(names), 10)
-
 
     # Check to see if all unconfirmed players have accepted
     # Starts game if true
